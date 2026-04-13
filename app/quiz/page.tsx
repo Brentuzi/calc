@@ -2,13 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { words, Word } from "@/lib/words";
-import {
-  loadProgress,
-  saveProgress,
-  recordAnswer,
-  getDueWords,
-  updateStreak,
-} from "@/lib/progress";
+import { loadProgress, saveProgress, recordAnswer, getDueWords, updateStreak } from "@/lib/progress";
+import { useLang } from "@/lib/LanguageContext";
 import SpeakButton from "@/components/SpeakButton";
 
 type QuizMode = "hanzi-to-meaning" | "meaning-to-hanzi" | "pinyin-to-hanzi";
@@ -31,22 +26,16 @@ function shuffle<T>(arr: T[]): T[] {
 function buildQuestion(word: Word, mode: QuizMode, allWords: Word[]): Question {
   const getOption = (w: Word) => {
     if (mode === "hanzi-to-meaning") return w.meaning;
-    if (mode === "meaning-to-hanzi") return w.hanzi;
     return w.hanzi;
   };
-
   const correct = getOption(word);
-  const distractors = shuffle(allWords.filter((w) => w.id !== word.id))
-    .slice(0, 3)
-    .map(getOption);
-
+  const distractors = shuffle(allWords.filter((w) => w.id !== word.id)).slice(0, 3).map(getOption);
   const options = shuffle([correct, ...distractors]);
-  const correctIndex = options.indexOf(correct);
-
-  return { word, options, correctIndex };
+  return { word, options, correctIndex: options.indexOf(correct) };
 }
 
 export default function QuizPage() {
+  const { tr } = useLang();
   const [mode, setMode] = useState<QuizMode>("hanzi-to-meaning");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [index, setIndex] = useState(0);
@@ -55,27 +44,18 @@ export default function QuizPage() {
   const [done, setDone] = useState(false);
   const [useSpaced, setUseSpaced] = useState(true);
 
-  const buildQuiz = useCallback(
-    (m: QuizMode, spaced: boolean) => {
-      const progress = loadProgress();
-      const ids = spaced ? getDueWords(progress, words.map((w) => w.id)) : words.map((w) => w.id);
-      const selected = shuffle(ids)
-        .slice(0, 15)
-        .map((id) => words.find((w) => w.id === id)!)
-        .filter(Boolean);
-      const qs = selected.map((w) => buildQuestion(w, m, words));
-      setQuestions(qs);
-      setIndex(0);
-      setSelected(null);
-      setScore(0);
-      setDone(false);
-    },
-    []
-  );
+  const buildQuiz = useCallback((m: QuizMode, spaced: boolean) => {
+    const progress = loadProgress();
+    const ids = spaced ? getDueWords(progress, words.map((w) => w.id)) : words.map((w) => w.id);
+    const sel = shuffle(ids).slice(0, 15).map((id) => words.find((w) => w.id === id)!).filter(Boolean);
+    setQuestions(sel.map((w) => buildQuestion(w, m, words)));
+    setIndex(0);
+    setSelected(null);
+    setScore(0);
+    setDone(false);
+  }, []);
 
-  useEffect(() => {
-    buildQuiz(mode, useSpaced);
-  }, [buildQuiz, mode, useSpaced]);
+  useEffect(() => { buildQuiz(mode, useSpaced); }, [buildQuiz, mode, useSpaced]);
 
   const current = questions[index];
 
@@ -84,7 +64,6 @@ export default function QuizPage() {
     setSelected(optionIndex);
     const isCorrect = optionIndex === current.correctIndex;
     if (isCorrect) setScore((s) => s + 1);
-
     let progress = loadProgress();
     progress = recordAnswer(progress, current.word.id, isCorrect);
     progress = updateStreak(progress);
@@ -92,18 +71,14 @@ export default function QuizPage() {
   }
 
   function next() {
-    if (index + 1 >= questions.length) {
-      setDone(true);
-    } else {
-      setIndex((i) => i + 1);
-      setSelected(null);
-    }
+    if (index + 1 >= questions.length) setDone(true);
+    else { setIndex((i) => i + 1); setSelected(null); }
   }
 
   const modeLabels: Record<QuizMode, string> = {
-    "hanzi-to-meaning": "Иероглиф → значение",
-    "meaning-to-hanzi": "Значение → иероглиф",
-    "pinyin-to-hanzi": "Пинь-инь → иероглиф",
+    "hanzi-to-meaning": tr.quiz.modeH2M,
+    "meaning-to-hanzi": tr.quiz.modeM2H,
+    "pinyin-to-hanzi": tr.quiz.modeP2H,
   };
 
   if (done) {
@@ -111,16 +86,11 @@ export default function QuizPage() {
     return (
       <div className="max-w-md mx-auto text-center space-y-6 py-10">
         <div className="text-6xl">{pct >= 80 ? "🏆" : pct >= 50 ? "👍" : "📚"}</div>
-        <h2 className="text-2xl font-bold text-gray-800">Тест завершён!</h2>
+        <h2 className="text-2xl font-bold text-gray-800">{tr.quiz.done}</h2>
         <div className="text-5xl font-bold text-red-600">{pct}%</div>
-        <div className="text-gray-500">
-          Правильно: {score} / {questions.length}
-        </div>
-        <button
-          onClick={() => buildQuiz(mode, useSpaced)}
-          className="bg-red-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-red-700 transition-colors"
-        >
-          Пройти снова
+        <div className="text-gray-500">{tr.quiz.correct.replace("!", "")}: {score} / {questions.length}</div>
+        <button onClick={() => buildQuiz(mode, useSpaced)} className="bg-red-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-red-700 transition-colors">
+          {tr.quiz.playAgain}
         </button>
       </div>
     );
@@ -137,13 +107,11 @@ export default function QuizPage() {
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-gray-800">Тест</h1>
+        <h1 className="text-xl font-bold text-gray-800">{tr.quiz.title}</h1>
         <div className="flex gap-2">
           <select
             value={mode}
-            onChange={(e) => {
-              setMode(e.target.value as QuizMode);
-            }}
+            onChange={(e) => setMode(e.target.value as QuizMode)}
             className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700"
           >
             {(Object.entries(modeLabels) as [QuizMode, string][]).map(([k, v]) => (
@@ -151,12 +119,8 @@ export default function QuizPage() {
             ))}
           </select>
           <label className="text-sm text-gray-600 cursor-pointer flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3 py-1.5">
-            <input
-              type="checkbox"
-              checked={useSpaced}
-              onChange={(e) => setUseSpaced(e.target.checked)}
-            />
-            Умный режим
+            <input type="checkbox" checked={useSpaced} onChange={(e) => setUseSpaced(e.target.checked)} />
+            {tr.quiz.smartMode}
           </label>
         </div>
       </div>
@@ -164,10 +128,7 @@ export default function QuizPage() {
       <div className="flex items-center gap-2 text-sm text-gray-500">
         <span className="font-medium text-gray-800">{index + 1}</span> / {questions.length}
         <div className="flex-1 h-1.5 bg-gray-200 rounded-full ml-2">
-          <div
-            className="h-full bg-red-500 rounded-full transition-all"
-            style={{ width: `${((index + 1) / questions.length) * 100}%` }}
-          />
+          <div className="h-full bg-red-500 rounded-full transition-all" style={{ width: `${((index + 1) / questions.length) * 100}%` }} />
         </div>
         <span className="font-medium text-green-600">{score} ✓</span>
       </div>
@@ -191,7 +152,6 @@ export default function QuizPage() {
           const isCorrect = i === current.correctIndex;
           const isSelected = i === selected;
           let cls = "p-4 rounded-xl border-2 text-center font-medium transition-all ";
-
           if (selected === null) {
             cls += "border-gray-200 bg-white hover:border-red-300 hover:bg-red-50 cursor-pointer text-gray-800";
           } else if (isCorrect) {
@@ -201,13 +161,8 @@ export default function QuizPage() {
           } else {
             cls += "border-gray-100 bg-gray-50 text-gray-400";
           }
-
           return (
-            <button
-              key={i}
-              onClick={() => choose(i)}
-              className={cls}
-            >
+            <button key={i} onClick={() => choose(i)} className={cls}>
               <span className={mode !== "meaning-to-hanzi" ? "" : "hanzi text-xl"}>{opt}</span>
             </button>
           );
@@ -217,16 +172,15 @@ export default function QuizPage() {
       {selected !== null && (
         <div className={`rounded-xl p-4 ${selected === current.correctIndex ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
           <div className="font-semibold mb-1">
-            {selected === current.correctIndex ? "✓ Правильно!" : `✗ Неверно. Правильный ответ: ${current.options[current.correctIndex]}`}
+            {selected === current.correctIndex
+              ? `✓ ${tr.quiz.correct}`
+              : `✗ ${tr.quiz.wrong} ${current.options[current.correctIndex]}`}
           </div>
           <div className="text-sm text-gray-600 hanzi">{current.word.exampleHanzi}</div>
           <div className="text-sm text-gray-500 italic">{current.word.examplePinyin}</div>
           <div className="text-sm text-gray-500">{current.word.exampleMeaning}</div>
-          <button
-            onClick={next}
-            className="mt-3 w-full py-2 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-700 transition-colors"
-          >
-            Следующий →
+          <button onClick={next} className="mt-3 w-full py-2 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-700 transition-colors">
+            {tr.quiz.next}
           </button>
         </div>
       )}

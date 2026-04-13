@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const links = [
-  { href: "/", label: "Главная", icon: "🏠" },
-  { href: "/flashcards", label: "Карточки", icon: "🃏" },
-  { href: "/quiz", label: "Тест", icon: "✏️" },
-  { href: "/dictionary", label: "Словарь", icon: "📖" },
-];
+import { useLang } from "@/lib/LanguageContext";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { lang, setLang, tr } = useLang();
+
+  const links = [
+    { href: "/", label: tr.nav.home, icon: "🏠" },
+    { href: "/flashcards", label: tr.nav.flashcards, icon: "🃏" },
+    { href: "/quiz", label: tr.nav.quiz, icon: "✏️" },
+    { href: "/dictionary", label: tr.nav.dictionary, icon: "📖" },
+  ];
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -19,8 +21,9 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-14">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl font-bold text-red-600">中</span>
-            <span className="text-lg font-semibold text-gray-800 hidden sm:block">HSK1 Тренажёр</span>
+            <span className="text-lg font-semibold text-gray-800 hidden sm:block">{tr.appName}</span>
           </Link>
+
           <div className="flex items-center gap-1">
             {links.map((link) => {
               const active = pathname === link.href;
@@ -39,6 +42,14 @@ export default function Navbar() {
                 </Link>
               );
             })}
+
+            <button
+              onClick={() => setLang(lang === "ru" ? "en" : "ru")}
+              className="ml-2 flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              title={lang === "ru" ? "Switch to English" : "Переключить на русский"}
+            >
+              {lang === "ru" ? "🇷🇺 RU" : "🇬🇧 EN"}
+            </button>
           </div>
         </div>
       </div>
