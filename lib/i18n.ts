@@ -2,7 +2,7 @@ export type Lang = "ru" | "en";
 
 export const t = {
   ru: {
-    appName: "HSK1 Тренажёр",
+    appName: "HSKtrainer By ALEX",
     nav: {
       home: "Главная",
       flashcards: "Карточки",
@@ -10,7 +10,7 @@ export const t = {
       dictionary: "Словарь",
     },
     home: {
-      title: "HSK1 Тренажёр",
+      title: "HSKtrainer By ALEX",
       subtitle: "300 слов уровня HSK1 с примерами предложений",
       totalWords: "Всего слов",
       learning: "Изучаю",
@@ -70,7 +70,7 @@ export const t = {
     },
   },
   en: {
-    appName: "HSK1 Trainer",
+    appName: "HSKtrainer By ALEX",
     nav: {
       home: "Home",
       flashcards: "Flashcards",
@@ -78,7 +78,7 @@ export const t = {
       dictionary: "Dictionary",
     },
     home: {
-      title: "HSK1 Trainer",
+      title: "HSKtrainer By ALEX",
       subtitle: "300 HSK1 words with example sentences",
       totalWords: "Total words",
       learning: "Learning",

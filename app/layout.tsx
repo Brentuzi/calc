@@ -4,8 +4,8 @@ import Navbar from "@/components/Navbar";
 import { LanguageProvider } from "@/lib/LanguageContext";
 
 export const metadata: Metadata = {
-  title: "HSK1 Тренажёр — учи китайский",
-  description: "Учи 300 слов HSK1 с карточками, тестами и интервальными повторениями",
+  title: "HSKtrainer By ALEX",
+  description: "Learn 300 HSK1 Chinese words with flashcards, quizzes and spaced repetition",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

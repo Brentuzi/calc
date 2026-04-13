@@ -26,7 +26,9 @@ export default function HomePage() {
     <div className="space-y-8">
       <div className="text-center space-y-2">
         <h1 className="text-4xl font-bold text-gray-900">
-          <span className="text-red-600 hanzi">汉语</span> {tr.home.title}
+          <span className="text-red-600 hanzi">汉语</span>{" "}
+          <span className="text-gray-900">HSKtrainer</span>{" "}
+          <span className="text-red-500 font-light">By ALEX</span>
         </h1>
         <p className="text-gray-500 text-lg">{tr.home.subtitle}</p>
       </div>

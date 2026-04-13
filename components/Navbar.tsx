@@ -21,7 +21,9 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-14">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl font-bold text-red-600">中</span>
-            <span className="text-lg font-semibold text-gray-800 hidden sm:block">{tr.appName}</span>
+            <span className="text-lg font-bold text-gray-900 hidden sm:block">
+              HSKtrainer <span className="font-light text-red-500">By ALEX</span>
+            </span>
           </Link>
 
           <div className="flex items-center gap-1">
